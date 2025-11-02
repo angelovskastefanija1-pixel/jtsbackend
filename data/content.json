@@ -1,0 +1,135 @@
+{
+  "_id": "site",
+  "hero": {
+    "title": "JTS Logistics INC — Truck Dispatch Service that keeps you moving & profitable",
+    "subtitle": "Dedicated dispatchers, top-paying loads, paperwork handled and 24/7 support for owner-operators.",
+    "bullets": [
+      "Top load sourcing & rate negotiation",
+      "Carrier packets",
+      "BOL & invoicing handled",
+      "No long-term contracts"
+    ]
+  },
+  "services": [
+    {
+      "title": "Load Hunting & Dispatch",
+      "text": "We find, negotiate and book the best loads that match your lanes and preferences.",
+      "bullets": [
+        "DAT/123/TA boards + direct shippers",
+        "Lane & schedule preferences respected",
+        "Detention/TONU assistance"
+      ]
+    },
+    {
+      "title": "Paperwork & Compliance",
+      "text": "We handle carrier packets, insurance COI, BOL/POD, invoicing and broker setup.",
+      "bullets": [
+        "Quick setup with e-sign",
+        "Clean audit-ready records",
+        "Factoring coordination"
+      ]
+    },
+    {
+      "title": "Dedicated Support 24/7",
+      "text": "Real humans on call. We manage pickups, deliveries, lumper fees and updates.",
+      "bullets": [
+        "Proactive check calls",
+        "Issue resolution on the spot",
+        "ETA tracking & updates"
+      ]
+    }
+  ],
+  "process": [
+    "Sign up and tell us your lanes, equipment & schedule.",
+    "We source loads and negotiate the best rates for you.",
+    "You approve. We dispatch and handle all paperwork.",
+    "Deliver. Get paid faster with clean documents."
+  ],
+  "pricing": [
+    {
+      "name": "Owner-Operator",
+      "priceText": "10% per load <BR> it's not a joke",
+      "features": [
+        "Priority load sourcing",
+        "Multi-truck coordination",
+        "Weekly performance report"
+      ],
+      "featured": true,
+      "badge": "Most Popular"
+    },
+    {
+      "name": "Small Fleet (2–10)",
+      "priceText": "6% per load",
+      "features": [
+        "Dedicated dispatcher",
+        "Paperwork & billing",
+        "24/7 support"
+      ]
+    },
+    {
+      "name": "Custom",
+      "priceText": "Flat monthly",
+      "features": [
+        "Dedicated team",
+        "Direct shipper lanes",
+        "Custom SLAs"
+      ]
+    }
+  ],
+  "stats": [
+    {
+      "value": "24/7",
+      "label": "Live Support"
+    },
+    {
+      "value": "+$0.20",
+      "label": "Avg. RPM Increase*"
+    },
+    {
+      "value": "98%",
+      "label": "On-time Delivery"
+    },
+    {
+      "value": "3k+",
+      "label": "Loads Booked"
+    }
+  ],
+  "tops": [
+    {
+      "rank": "Winner",
+      "name": "Daniel Brown ",
+      "route": "Arizona -> Texas",
+      "routeImage": "https://www.printmaps.net/wp-content/uploads/2020/05/biking-route-map-1024x665.png",
+      "km": "823",
+      "video": "https://www.youtube.com/watch?v=mBLjJN61Cg8",
+      "image": "https://lh3.googleusercontent.com/pw/AP1GczPor8E50a2T6st71zEtdNvuevmdG-R9c7KsmsxQhaI-oDR8zZKhpLLNaEiZI4m8JZO_lk6Nn2IwZDFA_z9jbi7YbQoCLMh0szJzDibFyMIDniXa2vE=w2400"
+    },
+    {
+      "rank": "Silver",
+      "name": "Jhon Williams",
+      "route": "Arizona -> California",
+      "routeImage": "https://www.printmaps.net/wp-content/uploads/2020/05/biking-route-map-1024x665.png",
+      "km": "735",
+      "video": "https://www.youtube.com/watch?v=mABpgDl1DTU",
+      "image": "https://lh3.googleusercontent.com/pw/AP1GczOk_s57T-6CBNRvjaji-QicKfLkcJcCYSf4OHTyNtj1PwbeKVQgY0k_BrS9aAbeJTW9jk8qgsu7qi7bY7JvXBRGXYDBROeRFCxi4lSrijJCvj7R8Ww=w2400"
+    },
+    {
+      "rank": "Bronze",
+      "name": "Dan Lenguager",
+      "route": "California -> Arizona",
+      "routeImage": "https://www.printmaps.net/wp-content/uploads/2020/05/biking-route-map-1024x665.png",
+      "km": "728",
+      "video": "https://www.youtube.com/shorts/SDHvi6szdZI",
+      "image": "https://lh3.googleusercontent.com/pw/AP1GczOwyVW65a1q1mV8uyAoztFKlz1Twu36pdQ1c19Nevx7v5RpUad8SyjYb44hQ8ABMqHb2iAkz5gwqy3XWfa3p_yVvbGvmfuiv0_0wSBRtclZQkuZN_0=w2400"
+    }
+  ],
+  "contact": {
+    "phone": "+1 (555) 123-4567",
+    "email": "dispatch@jtslogistics.com",
+    "location": "Nationwide"
+  },
+  "footer": {
+    "brandText": "JTS Logistics INC"
+  },
+  "updatedAt": "2025-10-13T19:55:47.151Z"
+}

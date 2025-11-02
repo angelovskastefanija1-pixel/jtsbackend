@@ -1,0 +1,19 @@
+{
+  "name": "jts-dispatchpro-v5-1",
+  "version": "1.0.0",
+  "description": "JTS Logistics INC - DispatchPro (no MongoDB) with JSON storage, sessions, Weekly TOPs + image upload, roles, WhatsApp CTA, light theme (v5.1)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "express-session": "^1.18.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.10.1",
+    "sharp": "^0.34.4"
+  }
+}
