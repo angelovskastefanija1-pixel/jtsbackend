@@ -9,6 +9,7 @@ import bcrypt from "bcryptjs";
 import sharp from "sharp";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
+    import sgMail from "@sendgrid/mail";
 
 dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -151,7 +152,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // 🟢 DRIVER APPLICATION FORM
-// 🟢 DRIVER APPLICATION FORM
 app.post("/api/apply", upload.single("attachment"), async (req, res) => {
   try {
     const data = req.body;
@@ -167,27 +167,39 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
       ${file ? `<p><b>Attachment:</b> ${file}</p>` : ""}
     `;
 
-    // ✅ SENDGRID CONFIG
-   // ✅ SENDGRID SMTP CONFIG
-const transporter = nodemailer.createTransport({
-  host: "smtp.sendgrid.net",
-  port: 587,
-  secure: false,
-  auth: {
-    user: "apikey", // ова секогаш останува „apikey“
-    pass: process.env.SENDGRID_API_KEY, // твојот API key од Render
-  },
+    // ✅ SENDGRID API METHOD
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+    const msg = {
+      to: ["recruiting@jtslogistics.net", process.env.NOTIFY_TO],
+      from: "websolution.mn@gmail.com", // истиот што е верифициран во SendGrid
+      subject: `New Driver Application – ${data["First Name"] || "No name"}`,
+      html: htmlBody,
+    };
+
+    // ако има прикачен фајл
+    if (file) {
+      const filePath = path.join(__dirname, "public", file);
+      const fileContent = fs.readFileSync(filePath).toString("base64");
+      msg.attachments = [
+        {
+          content: fileContent,
+          filename: path.basename(filePath),
+          type: "application/octet-stream",
+          disposition: "attachment",
+        },
+      ];
+    }
+
+    await sgMail.send({
+  to: ["recruiting@jtslogistics.net", process.env.NOTIFY_TO],
+  from: "websolution.mn@gmail.com",
+  subject: `New Driver Application – ${data["First Name"] || "No name"}`,
+  html: htmlBody,
 });
 
 
-    await transporter.sendMail({
-      from: `"JTS Logistics Application" <websolution.mn@gmail.com>`,
-      to: [process.env.NOTIFY_TO, "recruiting@jtslogistics.net"],
-      subject: `New Driver Application – ${data["First Name"] || "No name"}`,
-      html: htmlBody,
-      attachments: file ? [{ path: path.join(__dirname, "public", file) }] : [],
-    });
-
+    // снимаме локално
     const msgs = readJSON(MSG_FILE) || [];
     msgs.push({ ...data, attachment: file, createdAt: new Date().toISOString() });
     writeJSON(MSG_FILE, msgs);
@@ -198,6 +210,7 @@ const transporter = nodemailer.createTransport({
     res.status(500).json({ ok: false, error: err.message });
   }
 });
+
 
 
 //app.get("*", (_req, res) =>
