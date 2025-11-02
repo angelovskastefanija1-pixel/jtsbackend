@@ -169,15 +169,15 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
     // ✉️ Ethereal тест акаунт (работи без Gmail)
 const testAccount = await nodemailer.createTestAccount();
 
+// 🟢 SendGrid реална испорака
 const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  secure: false,
+  service: "SendGrid",
   auth: {
-    user: testAccount.user,
-    pass: testAccount.pass,
+    user: "apikey", // фиксно се става "apikey"
+    pass: process.env.SENDGRID_API_KEY, // твојот API key од Render
   },
 });
+
 
 
 
