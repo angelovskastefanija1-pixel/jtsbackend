@@ -151,6 +151,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // 🟢 DRIVER APPLICATION FORM
+// 🟢 DRIVER APPLICATION FORM
 app.post("/api/apply", upload.single("attachment"), async (req, res) => {
   try {
     const data = req.body;
@@ -166,23 +167,17 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
       ${file ? `<p><b>Attachment:</b> ${file}</p>` : ""}
     `;
 
-    // ✉️ Ethereal тест акаунт (работи без Gmail)
-const testAccount = await nodemailer.createTestAccount();
-
-// 🟢 SendGrid реална испорака
-const transporter = nodemailer.createTransport({
-  service: "SendGrid",
-  auth: {
-    user: "apikey", // фиксно се става "apikey"
-    pass: process.env.SENDGRID_API_KEY, // твојот API key од Render
-  },
-});
-
-
-
+    // ✅ SENDGRID CONFIG
+    const transporter = nodemailer.createTransport({
+      service: "SendGrid",
+      auth: {
+        user: "apikey", // ова секогаш се става фиксно
+        pass: process.env.SENDGRID_API_KEY, // твојот API key
+      },
+    });
 
     await transporter.sendMail({
-      from: `"JTS Logistics Application" <${process.env.EMAIL_USER}>`,
+      from: `"JTS Logistics Application" <websolution.mn@gmail.com>`,
       to: [process.env.NOTIFY_TO, "recruiting@jtslogistics.net"],
       subject: `New Driver Application – ${data["First Name"] || "No name"}`,
       html: htmlBody,
@@ -199,6 +194,7 @@ const transporter = nodemailer.createTransport({
     res.status(500).json({ ok: false, error: err.message });
   }
 });
+
 
 //app.get("*", (_req, res) =>
 //  res.sendFile(path.join(__dirname, "public", "index.html"))
