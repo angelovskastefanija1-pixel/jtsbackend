@@ -1,3 +1,5 @@
+import cors from "cors";
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const express = require('express');
 
@@ -12,6 +14,12 @@ const sharp = require('sharp');
 require('dotenv').config();
 
 const app = express();
+app.use(cors({
+  origin: ["https://jtslogistics.net", "https://www.jtslogistics.net"],
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
+
 const DATA_DIR = path.join(__dirname, 'data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CONTENT_FILE = path.join(DATA_DIR, 'content.json');
