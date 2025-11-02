@@ -10,6 +10,7 @@ import sharp from "sharp";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
     import sgMail from "@sendgrid/mail";
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 dotenv.config();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -168,7 +169,6 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
     `;
 
     // ✅ SENDGRID API METHOD
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
     const msg = {
       to: ["recruiting@jtslogistics.net", process.env.NOTIFY_TO],
