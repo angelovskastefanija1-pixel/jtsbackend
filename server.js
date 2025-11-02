@@ -65,6 +65,9 @@ app.use(
   })
 );
 app.use(express.static(path.join(__dirname, "public")));
+// ✅ Serve uploaded files directly
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
+
 
 /* -------------------- ✅ FILE PATHS -------------------- */
 const DATA_DIR = path.join(__dirname, "data");
