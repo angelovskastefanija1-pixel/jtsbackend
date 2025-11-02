@@ -28,9 +28,10 @@ app.use(
     origin: ["https://jtslogistics.net", "https://www.jtslogistics.net"],
     methods: ["GET", "POST", "PUT"],
     allowedHeaders: ["Content-Type"],
-    credentials: true, // ✅ важно!
+    credentials: true, // ✅ важно за cookie session
   })
 );
+
 
 
 const DATA_DIR = path.join(__dirname, "data");
@@ -94,9 +95,14 @@ app.use(
     secret: process.env.SESSION_SECRET || "change_session_secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { httpOnly: true, sameSite: "lax" },
+    cookie: {
+      httpOnly: true,
+      sameSite: "none", // ✅ важно за cross-domain (Render ↔ Net)
+      secure: true,     // ✅ cookie ќе оди само преку HTTPS
+    },
   })
 );
+
 app.use(express.static(path.join(__dirname, "public")));
 
 // Auth helpers
@@ -215,6 +221,11 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
   }
 });
 
+// 🟢 INBOX MESSAGES (for admin panel)
+app.get("/api/admin/messages", requireAuth, (req, res) => {
+  const msgs = readJSON(MSG_FILE) || [];
+  res.json(msgs);
+});
 
 
 //app.get("*", (_req, res) =>
