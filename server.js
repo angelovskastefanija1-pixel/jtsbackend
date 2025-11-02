@@ -167,9 +167,15 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
     `;
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 
     await transporter.sendMail({
       from: `"JTS Logistics Application" <${process.env.EMAIL_USER}>`,
