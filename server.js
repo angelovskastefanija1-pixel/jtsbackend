@@ -21,13 +21,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // ✅ Allow your frontend domain
+
+
 app.use(
   cors({
     origin: ["https://jtslogistics.net", "https://www.jtslogistics.net"],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT"],
     allowedHeaders: ["Content-Type"],
+    credentials: true, // ✅ важно!
   })
 );
+
 
 const DATA_DIR = path.join(__dirname, "data");
 const USERS_FILE = path.join(DATA_DIR, "users.json");
