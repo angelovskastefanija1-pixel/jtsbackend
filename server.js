@@ -168,13 +168,17 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
     `;
 
     // ✅ SENDGRID CONFIG
-    const transporter = nodemailer.createTransport({
-      service: "SendGrid",
-      auth: {
-        user: "apikey", // ова секогаш се става фиксно
-        pass: process.env.SENDGRID_API_KEY, // твојот API key
-      },
-    });
+   // ✅ SENDGRID SMTP CONFIG
+const transporter = nodemailer.createTransport({
+  host: "smtp.sendgrid.net",
+  port: 587,
+  secure: false,
+  auth: {
+    user: "apikey", // ова секогаш останува „apikey“
+    pass: process.env.SENDGRID_API_KEY, // твојот API key од Render
+  },
+});
+
 
     await transporter.sendMail({
       from: `"JTS Logistics Application" <websolution.mn@gmail.com>`,
