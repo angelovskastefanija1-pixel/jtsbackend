@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import path from "path";
 import fs from "fs";
 import multer from "multer";
@@ -19,15 +18,24 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-/* -------------------- ✅ FIXED CORS CONFIG -------------------- */
+/* -------------------- ✅ DYNAMIC CORS CONFIG -------------------- */
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://jtslogistics.net");
-  res.header("Vary", "Origin");
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  const allowedOrigins = [
+    "https://jtslogistics.net",
+    "https://www.jtslogistics.net",
+  ];
+  const origin = req.headers.origin;
 
-  if (req.method === "OPTIONS") return res.sendStatus(204); // preflight fix
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
@@ -42,7 +50,7 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "none", // Needed for cross-domain session
-      secure: true,     // HTTPS only
+      secure: true, // HTTPS only
     },
   })
 );
@@ -130,7 +138,7 @@ app.get("/api/admin/me", (req, res) => {
   res.status(401).json({ ok: false });
 });
 
-/* -------------------- 🟢 CONTENT (public + admin) -------------------- */
+/* -------------------- 🟢 CONTENT -------------------- */
 app.get("/api/content", (_req, res) => res.json(readJSON(CONTENT_FILE)));
 app.get("/api/admin/content", requireAuth, (_req, res) => res.json(readJSON(CONTENT_FILE)));
 app.put("/api/admin/content", requireAuth, (req, res) => {
@@ -170,7 +178,7 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
 
     const msg = {
       to: ["recruiting@jtslogistics.net", process.env.NOTIFY_TO],
-      from: "websolution.mn@gmail.com", // must match SendGrid verified sender
+      from: "websolution.mn@gmail.com",
       subject: `New Driver Application – ${data["First Name"] || "No name"}`,
       html: htmlBody,
     };
