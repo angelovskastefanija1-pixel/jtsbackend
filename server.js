@@ -166,15 +166,19 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
       ${file ? `<p><b>Attachment:</b> ${file}</p>` : ""}
     `;
 
-    const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+    // ✉️ Ethereal тест акаунт (работи без Gmail)
+const testAccount = await nodemailer.createTestAccount();
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: testAccount.user,
+    pass: testAccount.pass,
   },
 });
+
 
 
     await transporter.sendMail({
@@ -196,9 +200,9 @@ app.post("/api/apply", upload.single("attachment"), async (req, res) => {
   }
 });
 
-app.get("*", (_req, res) =>
-  res.sendFile(path.join(__dirname, "public", "index.html"))
-);
+//app.get("*", (_req, res) =>
+//  res.sendFile(path.join(__dirname, "public", "index.html"))
+//);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
