@@ -19,6 +19,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 /* -------------------- ✅ DYNAMIC CORS CONFIG -------------------- */
+/* -------------------- ✅ FINAL CORS FIX (Render Safe) -------------------- */
+app.set('trust proxy', 1); // ✅ важно за secure cookies преку Render proxy
+
 app.use((req, res, next) => {
   const allowedOrigins = [
     "https://jtslogistics.net",
@@ -35,9 +38,16 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-  if (req.method === "OPTIONS") return res.sendStatus(204);
+  // Render понекогаш бара explicit preflight response
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   next();
 });
+
 
 /* -------------------- ✅ MIDDLEWARE -------------------- */
 app.use(express.json());
