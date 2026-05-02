@@ -6,7 +6,6 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -87,6 +86,15 @@ function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
 
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 /* -------------------- DEFAULT FILES -------------------- */
 if (!fs.existsSync(USERS_FILE)) {
   writeJSON(USERS_FILE, [
@@ -120,7 +128,9 @@ if (!fs.existsSync(CONTENT_FILE)) {
   });
 }
 
-if (!fs.existsSync(MSG_FILE)) writeJSON(MSG_FILE, []);
+if (!fs.existsSync(MSG_FILE)) {
+  writeJSON(MSG_FILE, []);
+}
 
 /* -------------------- AUTH -------------------- */
 function requireAuth(req, res, next) {
@@ -139,6 +149,7 @@ app.post("/api/admin/login", (req, res) => {
   const user = users.find((x) => x.username === username);
 
   if (!user) return res.json({ ok: false });
+
   if (!bcrypt.compareSync(password, user.passwordHash)) {
     return res.json({ ok: false });
   }
@@ -213,20 +224,52 @@ const multiUpload = upload.fields([
   { name: "extra", maxCount: 10 }
 ]);
 
-/* -------------------- MAIL TRANSPORTER - BREVO SMTP -------------------- */
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: false,
-  requireTLS: true,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  },
-  connectionTimeout: 60000,
-  greetingTimeout: 60000,
-  socketTimeout: 60000
-});
+/* -------------------- BREVO API EMAIL -------------------- */
+async function sendBrevoEmail({ subject, html, attachments }) {
+  if (!process.env.BREVO_API_KEY) {
+    throw new Error("Missing BREVO_API_KEY in Render Environment");
+  }
+
+  if (!process.env.MAIL_FROM) {
+    throw new Error("Missing MAIL_FROM in Render Environment");
+  }
+
+  if (!process.env.MAIL_TO) {
+    throw new Error("Missing MAIL_TO in Render Environment");
+  }
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": process.env.BREVO_API_KEY,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      sender: {
+        name: "JTS Logistics",
+        email: process.env.MAIL_FROM
+      },
+      to: [
+        {
+          email: process.env.MAIL_TO
+        }
+      ],
+      subject,
+      htmlContent: html,
+      attachment: attachments
+    })
+  });
+
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    console.error("Brevo API error:", result);
+    throw new Error(result.message || "Brevo email failed");
+  }
+
+  return result;
+}
 
 /* -------------------- DRIVER APPLICATION FORM -------------------- */
 app.post("/api/apply", multiUpload, async (req, res) => {
@@ -253,8 +296,8 @@ app.post("/api/apply", multiUpload, async (req, res) => {
           .map(
             ([key, value]) =>
               `<tr>
-                <td><b>${key}</b></td>
-                <td>${value || ""}</td>
+                <td><b>${escapeHTML(key)}</b></td>
+                <td>${escapeHTML(value)}</td>
               </tr>`
           )
           .join("")}
@@ -266,18 +309,18 @@ app.post("/api/apply", multiUpload, async (req, res) => {
     Object.keys(files).forEach((key) => {
       files[key].forEach((file) => {
         attachments.push({
-          filename: file.originalname,
-          path: file.path
+          name: file.originalname,
+          content: fs.readFileSync(file.path).toString("base64")
         });
       });
     });
 
-    await transporter.sendMail({
-      from: `"JTS Logistics" <${process.env.MAIL_FROM}>`,
-      to: process.env.MAIL_TO,
-      subject: `New Driver Application - ${data["First Name"] || "Unknown"} ${
-        data["Last Name"] || ""
-      }`,
+    const subject = `New Driver Application - ${
+      data["First Name"] || "Unknown"
+    } ${data["Last Name"] || ""}`;
+
+    await sendBrevoEmail({
+      subject,
       html: htmlBody,
       attachments
     });
@@ -298,7 +341,7 @@ app.post("/api/apply", multiUpload, async (req, res) => {
     });
   } catch (err) {
     console.error("Driver application error:", err.message);
-    console.error("Mail error:", err);
+    console.error("Full error:", err);
 
     res.status(500).json({
       ok: false,
