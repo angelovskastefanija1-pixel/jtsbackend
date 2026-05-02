@@ -176,7 +176,12 @@ const multiUpload = multer({ storage }).fields([
 ]);
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  connectionTimeout: 30000,
+  greetingTimeout: 30000,
+  socketTimeout: 30000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -246,7 +251,7 @@ await transporter.sendMail({
 
   }  catch (err) {
   console.error("Driver application error:", err.message);
-  console.error("SendGrid response:", err.response?.body);
+  console.error("Mail error:", err);
   res.status(500).json({
     ok: false,
     error: err.message,
