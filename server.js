@@ -7,10 +7,8 @@ import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
-import sharp from "sharp";
 
 dotenv.config();
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +16,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 /* -------------------- CORS -------------------- */
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 app.use((req, res, next) => {
   const allowedOrigins = [
@@ -46,10 +44,10 @@ app.use((req, res, next) => {
   next();
 });
 
-
 /* -------------------- MIDDLEWARE -------------------- */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change_session_secret",
@@ -58,8 +56,8 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "none",
-      secure: true,
-    },
+      secure: true
+    }
   })
 );
 
@@ -84,6 +82,7 @@ function readJSON(file) {
     return null;
   }
 }
+
 function writeJSON(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
 }
@@ -91,21 +90,33 @@ function writeJSON(file, data) {
 /* -------------------- DEFAULT FILES -------------------- */
 if (!fs.existsSync(USERS_FILE)) {
   writeJSON(USERS_FILE, [
-    { username: "admin", passwordHash: bcrypt.hashSync("1234", 10), role: "admin" },
-    { username: "user", passwordHash: bcrypt.hashSync("7890", 10), role: "limited" },
+    {
+      username: "admin",
+      passwordHash: bcrypt.hashSync("1234", 10),
+      role: "admin"
+    },
+    {
+      username: "user",
+      passwordHash: bcrypt.hashSync("7890", 10),
+      role: "limited"
+    }
   ]);
 }
 
 if (!fs.existsSync(CONTENT_FILE)) {
   writeJSON(CONTENT_FILE, {
-    hero: { title: "JTS Logistics INC — Truck Dispatch", subtitle: "Loading...", bullets: [] },
+    hero: {
+      title: "JTS Logistics INC — Truck Dispatch",
+      subtitle: "Loading...",
+      bullets: []
+    },
     services: [],
     process: [],
     pricing: [],
     tops: [],
     contact: {},
     footer: {},
-    updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   });
 }
 
@@ -128,25 +139,40 @@ app.post("/api/admin/login", (req, res) => {
   const user = users.find((x) => x.username === username);
 
   if (!user) return res.json({ ok: false });
-  if (!bcrypt.compareSync(password, user.passwordHash)) return res.json({ ok: false });
+  if (!bcrypt.compareSync(password, user.passwordHash)) {
+    return res.json({ ok: false });
+  }
 
-  req.session.user = { username: user.username, role: user.role };
+  req.session.user = {
+    username: user.username,
+    role: user.role
+  };
+
   res.json({ ok: true, role: user.role });
 });
 
 /* -------------------- LOGOUT -------------------- */
-app.post("/api/admin/logout", (req, res) => req.session.destroy(() => res.json({ ok: true })));
+app.post("/api/admin/logout", (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
 
 /* -------------------- SESSION -------------------- */
 app.get("/api/admin/me", (req, res) => {
-  if (req.session?.user) return res.json({ ok: true, user: req.session.user });
+  if (req.session?.user) {
+    return res.json({ ok: true, user: req.session.user });
+  }
+
   return res.status(401).json({ ok: false });
 });
 
 /* -------------------- CONTENT -------------------- */
-app.get("/api/content", (_req, res) => res.json(readJSON(CONTENT_FILE)));
+app.get("/api/content", (_req, res) => {
+  res.json(readJSON(CONTENT_FILE));
+});
 
-app.get("/api/admin/content", requireAuth, (_req, res) => res.json(readJSON(CONTENT_FILE)));
+app.get("/api/admin/content", requireAuth, (_req, res) => {
+  res.json(readJSON(CONTENT_FILE));
+});
 
 app.put("/api/admin/content", requireAuth, (req, res) => {
   const incoming = req.body || {};
@@ -159,112 +185,141 @@ app.put("/api/admin/content", requireAuth, (req, res) => {
   next.updatedAt = new Date().toISOString();
 
   writeJSON(CONTENT_FILE, next);
+
   res.json({ ok: true, content: next });
 });
 
 /* -------------------- UPLOAD ENGINE -------------------- */
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) =>
-    cb(null, Date.now() + "_" + file.originalname.replace(/[^a-z0-9.\-_]+/gi, "_")),
+  destination: (_req, _file, cb) => {
+    cb(null, UPLOADS_DIR);
+  },
+  filename: (_req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-z0-9.\-_]+/gi, "_");
+    cb(null, Date.now() + "_" + safeName);
+  }
 });
 
-const multiUpload = multer({ storage }).fields([
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 15 * 1024 * 1024
+  }
+});
+
+const multiUpload = upload.fields([
   { name: "license", maxCount: 1 },
   { name: "medcard", maxCount: 1 },
   { name: "extra", maxCount: 10 }
 ]);
 
+/* -------------------- MAIL TRANSPORTER - BREVO SMTP -------------------- */
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
+  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: false,
+  requireTLS: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  },
+  connectionTimeout: 60000,
+  greetingTimeout: 60000,
+  socketTimeout: 60000
 });
 
 /* -------------------- DRIVER APPLICATION FORM -------------------- */
 app.post("/api/apply", multiUpload, async (req, res) => {
   try {
-    const data = req.body;
-    const files = req.files;
-console.log("BODY:", data);
-console.log("FILES:", files ? Object.keys(files) : "NO FILES");
-    if (!files || !files.license || !files.medcard) {
-  return res.status(400).json({
-    ok: false,
-    error: "Missing required documents",
-    receivedFiles: files ? Object.keys(files) : []
-  });
-}
+    const data = req.body || {};
+    const files = req.files || {};
+
+    console.log("BODY:", data);
+    console.log("FILES:", Object.keys(files));
+
+    if (!files.license || !files.medcard) {
+      return res.status(400).json({
+        ok: false,
+        error: "Missing required documents",
+        receivedFiles: Object.keys(files)
+      });
+    }
 
     const htmlBody = `
-      <h3>🧾 New Driver Employment Application</h3>
-      <table border="1" cellspacing="0" cellpadding="5">
-        ${Object.entries(data).map(([k, v]) => `<tr><td><b>${k}</b></td><td>${v || ""}</td></tr>`).join("")}
+      <h3>New Driver Employment Application</h3>
+
+      <table border="1" cellspacing="0" cellpadding="6">
+        ${Object.entries(data)
+          .map(
+            ([key, value]) =>
+              `<tr>
+                <td><b>${key}</b></td>
+                <td>${value || ""}</td>
+              </tr>`
+          )
+          .join("")}
       </table>
     `;
 
-    const msg = {
-  to: "websolution.mn@gmail.com",
-  from: "websolution.mn@gmail.com",
-  subject: `New Driver Application - ${data["First Name"] || "Unknown"}`,
-  html: htmlBody,
-  attachments: []
-};
+    const attachments = [];
 
-    Object.keys(files).forEach(key => {
-      files[key].forEach(f => {
-        const filePath = path.join(UPLOADS_DIR, f.filename);
-        const fileData = fs.readFileSync(filePath).toString("base64");
-
-        msg.attachments.push({
-          content: fileData,
-          filename: f.originalname,
-          type: "application/octet-stream",
-          disposition: "attachment"
+    Object.keys(files).forEach((key) => {
+      files[key].forEach((file) => {
+        attachments.push({
+          filename: file.originalname,
+          path: file.path
         });
       });
     });
 
-await transporter.sendMail({
-  from: process.env.EMAIL_USER,
-  to: "websolution.mn@gmail.com",
-  subject: msg.subject,
-  html: msg.html,
-  attachments: msg.attachments.map(a => ({
-    filename: a.filename,
-    content: Buffer.from(a.content, "base64")
-  }))
-});
+    await transporter.sendMail({
+      from: `"JTS Logistics" <${process.env.MAIL_FROM}>`,
+      to: process.env.MAIL_TO,
+      subject: `New Driver Application - ${data["First Name"] || "Unknown"} ${
+        data["Last Name"] || ""
+      }`,
+      html: htmlBody,
+      attachments
+    });
 
-    const msgs = readJSON(MSG_FILE) || [];
-    msgs.push({ ...data, documents: Object.keys(files), createdAt: new Date().toISOString() });
-    writeJSON(MSG_FILE, msgs);
+    const messages = readJSON(MSG_FILE) || [];
 
-    res.json({ ok: true });
+    messages.push({
+      ...data,
+      documents: Object.keys(files),
+      createdAt: new Date().toISOString()
+    });
 
-  }  catch (err) {
-  console.error("Driver application error:", err.message);
-  console.error("Mail error:", err);
-  res.status(500).json({
-    ok: false,
-    error: err.message,
-    details: err.response?.body
-  });
-}
+    writeJSON(MSG_FILE, messages);
+
+    res.json({
+      ok: true,
+      message: "Application sent successfully"
+    });
+  } catch (err) {
+    console.error("Driver application error:", err.message);
+    console.error("Mail error:", err);
+
+    res.status(500).json({
+      ok: false,
+      error: err.message
+    });
+  }
 });
 
 /* -------------------- INBOX -------------------- */
-app.get("/api/admin/messages", requireAuth, (req, res) => {
+app.get("/api/admin/messages", requireAuth, (_req, res) => {
   res.json(readJSON(MSG_FILE) || []);
+});
+
+/* -------------------- HEALTH CHECK -------------------- */
+app.get("/", (_req, res) => {
+  res.send("JTS Backend is running");
 });
 
 /* -------------------- START SERVER -------------------- */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
