@@ -6,12 +6,11 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
-import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 import sharp from "sharp";
 
 dotenv.config();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -176,6 +175,14 @@ const multiUpload = multer({ storage }).fields([
   { name: "extra", maxCount: 10 }
 ]);
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 /* -------------------- DRIVER APPLICATION FORM -------------------- */
 app.post("/api/apply", multiUpload, async (req, res) => {
   try {
@@ -220,7 +227,16 @@ console.log("FILES:", files ? Object.keys(files) : "NO FILES");
       });
     });
 
-    await sgMail.send(msg);
+await transporter.sendMail({
+  from: process.env.EMAIL_USER,
+  to: "websolution.mn@gmail.com",
+  subject: msg.subject,
+  html: msg.html,
+  attachments: msg.attachments.map(a => ({
+    filename: a.filename,
+    content: Buffer.from(a.content, "base64")
+  }))
+});
 
     const msgs = readJSON(MSG_FILE) || [];
     msgs.push({ ...data, documents: Object.keys(files), createdAt: new Date().toISOString() });
