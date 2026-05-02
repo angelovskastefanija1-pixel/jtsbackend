@@ -181,10 +181,15 @@ app.post("/api/apply", multiUpload, async (req, res) => {
   try {
     const data = req.body;
     const files = req.files;
-
-    if (!files.license || !files.medcard) {
-      return res.json({ ok: false, error: "Missing required documents" });
-    }
+console.log("BODY:", data);
+console.log("FILES:", files ? Object.keys(files) : "NO FILES");
+    if (!files || !files.license || !files.medcard) {
+  return res.status(400).json({
+    ok: false,
+    error: "Missing required documents",
+    receivedFiles: files ? Object.keys(files) : []
+  });
+}
 
     const htmlBody = `
       <h3>🧾 New Driver Employment Application</h3>
