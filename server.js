@@ -194,7 +194,7 @@ app.post("/api/apply", multiUpload, async (req, res) => {
     `;
 
     const msg = {
-      to: ["recruiting@jtslogistics.net", process.env.NOTIFY_TO],
+      to: ["mar_nikolov@outlook.com", process.env.NOTIFY_TO],
       from: "websolution.mn@gmail.com",
       subject: `New Driver Application – ${data["First Name"] || "Unknown"}`,
       html: htmlBody,
