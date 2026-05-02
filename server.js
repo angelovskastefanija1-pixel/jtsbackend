@@ -194,12 +194,12 @@ app.post("/api/apply", multiUpload, async (req, res) => {
     `;
 
     const msg = {
-      to: ["mar_nikolov@outlook.com", process.env.NOTIFY_TO],
-      from: "websolution.mn@gmail.com",
-      subject: `New Driver Application – ${data["First Name"] || "Unknown"}`,
-      html: htmlBody,
-      attachments: []
-    };
+  to: "websolution.mn@gmail.com",
+  from: "websolution.mn@gmail.com",
+  subject: `New Driver Application - ${data["First Name"] || "Unknown"}`,
+  html: htmlBody,
+  attachments: []
+};
 
     Object.keys(files).forEach(key => {
       files[key].forEach(f => {
@@ -223,10 +223,15 @@ app.post("/api/apply", multiUpload, async (req, res) => {
 
     res.json({ ok: true });
 
-  } catch (err) {
-    console.error("❌ Driver application error:", err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
+  }  catch (err) {
+  console.error("Driver application error:", err.message);
+  console.error("SendGrid response:", err.response?.body);
+  res.status(500).json({
+    ok: false,
+    error: err.message,
+    details: err.response?.body
+  });
+}
 });
 
 /* -------------------- INBOX -------------------- */
